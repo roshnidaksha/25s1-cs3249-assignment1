@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "id",
+    "prompt",
+    "response",
+    "safety_action",
+    "policy_tags",
+    "latency_ms",
+    "model_name",
+    "deterministic"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Test case identifier"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "User input prompt"
+    },
+    "response": {
+      "type": "string",
+      "description": "System response text"
+    },
+    "safety_action": {
+      "type": "string",
+      "enum": ["allow", "block", "safe_fallback", "error"],
+      "description": "Safety action taken"
+    },
+    "policy_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Triggered policy tags"
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Response latency in milliseconds"
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Model used for generation"
+    },
+    "deterministic": {
+      "type": "boolean",
+      "description": "Whether deterministic settings were used"
+    }
+  }
+}
