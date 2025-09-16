@@ -1,6 +1,5 @@
 """
-Model provider module for Ollama integration.
-This module is complete - students should NOT modify.
+Model provider module for OpenAI integration.
 """
 
 import json
@@ -13,27 +12,36 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .config import (
-    MODEL_ENDPOINT,
-    MODEL_NAME,
+    OPENAI_MODEL_ENDPOINT,
+    OPENAI_MODEL,
+    OPENAI_PORT,
     TIMEOUT_SECONDS,
-    get_model_config,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class ModelProvider:
-    """Handles communication with Ollama API."""
+    """Handles communication with OpenAI API."""
     
     def __init__(self):
         """Initialize the model provider with retry logic."""
-        self.endpoint = MODEL_ENDPOINT
-        self.model_name = MODEL_NAME
+        self.endpoint = OPENAI_MODEL_ENDPOINT
+        self.model_name = OPENAI_MODEL
         self.session = self._create_session()
         self._verify_connection()
     
     def _create_session(self) -> requests.Session:
-        """Create HTTP session with retry logic."""
+        """
+        Create HTTP session with retry logic.
+        Configure the session to automatically retry failed requests (up to 3 times).
+        HTTP status codes to retry on:
+        429: Too Many Requests
+        500: Internal Server Error
+        502: Bad Gateway
+        503: Service Unavailable
+        504: Gateway Timeout
+        """
         session = requests.Session()
         retry_strategy = Retry(
             total=3,
@@ -46,39 +54,36 @@ class ModelProvider:
         return session
     
     def _verify_connection(self):
-        """Verify Ollama is running and model is available."""
+        """Verify OpenAI backend is running and responsive."""
         try:
-            # Check Ollama is running
-            response = self.session.get(
-                f"{self.endpoint}/api/tags",
+            # Send a minimal test request to the backend
+            test_payload = {
+                "message": "Hello",
+                "temperature": 0.0,
+                "max_tokens": 5,
+                "session_id": "test_session"
+            }
+            response = self.session.post(
+                f"{self.endpoint}/chat",
+                json=test_payload,
                 timeout=5
             )
             response.raise_for_status()
             
-            # Check model is available
-            models = response.json().get("models", [])
-            model_names = [m.get("name", "") for m in models]
-            
-            if self.model_name not in model_names:
-                available = ", ".join(model_names) if model_names else "none"
-                raise RuntimeError(
-                    f"Model '{self.model_name}' not found. "
-                    f"Available models: {available}. "
-                    f"Run: ollama pull {self.model_name}"
-                )
-            
-            logger.info(f"Successfully connected to Ollama with model {self.model_name}")
+            data = response.json()
+            if "response" not in data:
+                raise RuntimeError("Unexpected response structure from OpenAI backend.")
+            logger.info(f"Successfully connected to OpenAI backend at {self.endpoint}")
             
         except requests.exceptions.ConnectionError:
             raise RuntimeError(
-                "Cannot connect to Ollama. Please ensure:\n"
-                "1. Ollama is installed\n"
-                "2. Ollama service is running (run: ollama serve)\n"
-                "3. Port 11434 is not blocked"
+                "Cannot connect to OpenAI backend. Please ensure:\n"
+                "1. Backend is running\n"
+                "2. Port {OPENAI_PORT} is not blocked"
             )
         except Exception as e:
-            raise RuntimeError(f"Failed to verify Ollama connection: {e}")
-    
+            raise RuntimeError(f"Failed to verify OpenAI connection: {e}")
+
     def generate(
         self,
         prompt: str,
@@ -100,30 +105,22 @@ class ModelProvider:
         """
         start_time = time.time()
         
-        # Prepare the full prompt
-        full_prompt = self._build_prompt(prompt, system_prompt, conversation_history)
+        # Build history for OpenAI call
+        history = self._build_prompt(prompt, system_prompt, conversation_history)
         
-        # Get model configuration
-        config = get_model_config()
-        
-        # Override with any provided kwargs
-        if kwargs:
-            config["options"].update(kwargs)
-        
-        # Prepare request
-        request_data = {
-            "model": config["model"],
-            "prompt": full_prompt,
-            "stream": False,
-            "options": config["options"],
+        payload = {
+            "message": prompt,
+            "temperature": kwargs.get("temperature", 0.7),
+            "max_tokens": kwargs.get("max_tokens", 512),
+            "history": history
         }
         
         try:
-            logger.debug(f"Sending request to model: {json.dumps(request_data, indent=2)}")
-            
+            logger.debug(f"Sending request to model: {json.dumps(payload, indent=2)}")
+
             response = self.session.post(
-                f"{self.endpoint}/api/generate",
-                json=request_data,
+                f"{self.endpoint}/chat",
+                json=payload,
                 timeout=TIMEOUT_SECONDS,
             )
             response.raise_for_status()
@@ -134,12 +131,8 @@ class ModelProvider:
             return {
                 "response": result.get("response", ""),
                 "model": result.get("model", self.model_name),
-                "created_at": result.get("created_at", ""),
-                "done": result.get("done", True),
-                "context": result.get("context", []),
-                "total_duration": result.get("total_duration", 0),
                 "latency_ms": elapsed_ms,
-                "deterministic": config["options"]["temperature"] == 0,
+                "deterministic": payload["temperature"] == 0,
             }
             
         except requests.exceptions.Timeout:
@@ -154,43 +147,30 @@ class ModelProvider:
         user_prompt: str,
         system_prompt: Optional[str] = None,
         conversation_history: Optional[List[Dict]] = None,
-    ) -> str:
+    ) -> list:
         """
-        Build full prompt with system prompt and conversation history.
-        
+        Build history for backend in [{"role": "...", "content": "..."}] format.
+            
         Args:
             user_prompt: Current user input
             system_prompt: System instructions
-            conversation_history: List of previous turns
-            
-        Returns:
-            Formatted prompt string
+            conversation_history: List of previous turns 
         """
-        parts = []
-        
+        history = []
+
         # Add system prompt if provided
         if system_prompt:
-            parts.append(f"### System Instructions ###")
-            parts.append(system_prompt)
-            parts.append("\n### Conversation ###\n")
+            history.append({"role": "system", "content": system_prompt})
         
         # Add conversation history if provided
         if conversation_history:
             for turn in conversation_history:
                 role = turn.get("role", "user")
                 content = turn.get("content", "")
-                if role == "user":
-                    parts.append(f"User: {content}")
-                elif role == "assistant":
-                    parts.append(f"Assistant: {content}")
-            parts.append("")  # Empty line before current prompt
+                history.append({"role": role, "content": content})
+        history.append({"role": "user", "content": user_prompt})
         
-        # Add current user prompt
-        parts.append(f"User: {user_prompt}")
-        parts.append("\n### Response ###")
-        parts.append("Assistant: ")
-        
-        return "\n".join(parts)
+        return history
     
     def health_check(self) -> bool:
         """
