@@ -25,7 +25,7 @@ OPENAI_MODEL_CHAIN = [
     "gpt-4.1-mini",
 ]
 
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com")
+OPENAI_BASE_URL = "https://api.openai.com"
 
 
 class ModelProvider:

@@ -4,10 +4,7 @@ Students should modify TODO sections only.
 """
 
 from typing import Literal
-from dotenv import load_dotenv
 import os
-
-load_dotenv()  # Load .env if present
 
 # ============================================================================
 # Evaluation Settings
@@ -17,16 +14,6 @@ TOP_P = 1.0
 MAX_TOKENS = 500
 TIMEOUT_SECONDS = 30
 RANDOM_SEED = 42
-
-# Model Configuration
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-if not OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY is missing. Put it in your environment or a .env file.")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-OPENAI_PORT = int(os.getenv("OPENAI_PORT", 8001))
-OPENAI_MODEL_ENDPOINT = f"http://localhost:{OPENAI_PORT}"
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 # Logging Configuration
 LOG_LEVEL = "INFO"
@@ -73,7 +60,6 @@ CUSTOM_CONFIG = {
 def get_model_config():
     """Return model configuration for API calls."""
     return {
-        "model": MODEL_NAME,
         "options": {
             "temperature": TEMPERATURE,
             "top_p": TOP_P,
