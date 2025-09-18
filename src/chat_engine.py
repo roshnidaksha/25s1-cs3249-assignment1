@@ -44,16 +44,14 @@ class ChatEngine:
         """
         Process a single message through the conversation pipeline.
         
-        TODO: Complete the conversation flow implementation
-        
         IMPLEMENTATION GUIDE:
         The method follows this pipeline:
-        1. Show disclaimer if first interaction (already implemented)
-        2. Moderate user input (already implemented)
-        3. Handle moderation results (TODO - see detailed instructions below)
-        4. Generate response IF input passes (partially implemented)
-        5. Moderate output and prepare final response (already implemented)
-        6. Update history and add metadata (already implemented)
+        1. Show disclaimer if first interaction
+        2. Moderate user input
+        3. Handle moderation results
+        4. Generate response IF input passes (TODO: partially implemented)
+        5. Moderate output and prepare final response
+        6. Update history and add metadata
         
         Args:
             user_input: User's message
@@ -84,48 +82,81 @@ class ChatEngine:
         # Step 2: Moderate user input
         input_moderation = self._moderate_input(user_input)
 
-        # TODO: Step 3 - Handle moderation results
+        # Step 3 - Handle moderation results
         # CRITICAL: Different actions require different handling:
         # - BLOCK: Return immediately with fallback message (no model generation)
         # - SAFE_FALLBACK: Return immediately with safety resources (no model generation)
         # - ALLOW: Continue to model generation
         
-        # TODO: Handle moderation result
         if input_moderation.action == ModerationAction.BLOCK:
-            # TODO: Handle BLOCK action - Complete this section
-            # 
-            # IMPLEMENTATION STEPS:
-            # 1. Create final_response using _prepare_final_response() with:
-            #    - user_input: pass through
-            #    - model_response: {"response": "", "model": "blocked", "deterministic": True}
-            #    - input_moderation: pass through
-            #    - output_moderation: Create dummy ModerationResult with ALLOW action
-            # 2. If disclaimer exists, prepend it to the response.
-            # 3. Update conversation history (even for blocked messages).
-            # 4. Add metadata to final_response.
-            # 5. Return immediately (DO NOT continue to model generation).
-
-            pass  # DELETE this line and implement the BLOCK handling above
+            # Step 1: Prepare final response for BLOCK action
+            final_response = self._prepare_final_response(
+                user_input=user_input,
+                model_response={"response": "", "model": "blocked", "deterministic": True},
+                input_moderation=input_moderation,
+                output_moderation=ModerationResult(
+                    action=ModerationAction.ALLOW,
+                    tags=[],
+                    reason="",
+                    confidence=0.0,
+                ),
+            )
+            # Step 2: Add disclaimer if first interaction
+            if disclaimer:
+                final_response["response"] = f"{disclaimer}\n\n---\n\n{final_response['response']}"
+            
+            # Step 3: Update conversation history (even for blocked messages)
+            self._update_history(user_input, final_response["response"], "block")
+            
+            # Step 4: Add metadata to final_response
+            final_response["latency_ms"] = int((time.time() - start_time) * 1000)
+            final_response["turn_count"] = self.turn_count
+            final_response["session_id"] = self.session_id
+            
+            return final_response
 
         elif input_moderation.action == ModerationAction.SAFE_FALLBACK:
-            # TODO: Handle SAFE_FALLBACK action - Complete this section
-            #
-            # IMPLEMENTATION STEPS (similar to BLOCK but with different model indicator):
-            # 1. Create final_response using _prepare_final_response() with:
-            #    - model_response: {"response": "", "model": "safe_fallback", "deterministic": True}
-            #    - (other parameters same as BLOCK)
-            # 2. Add disclaimer if first interaction (same as BLOCK)
-            # 3. Update history (same as BLOCK)
-            # 4. Add metadata (same as BLOCK)
-            # 5. Return immediately without model generation
-
-            pass  # DELETE this line and implement the SAFE_FALLBACK handling above
+            # Step 1: Prepare final response for SAFE_FALLBACK action
+            final_response = self._prepare_final_response(
+                user_input=user_input,
+                model_response={"response": "", "model": "safe_fallback", "deterministic": True},
+                input_moderation=input_moderation,
+                output_moderation=ModerationResult(
+                    action=ModerationAction.ALLOW,
+                    tags=[],
+                    reason="",
+                    confidence=0.0,
+                ),
+            )
+            
+            # Step 2: Add disclaimer if first interaction
+            if disclaimer:
+                final_response["response"] = f"{disclaimer}\n\n---\n\n{final_response['response']}"
+                
+            # Step 3: Update conversation history (even for safe fallback messages)
+            self._update_history(user_input, final_response["response"], "safe_fallback")
+            
+            # Step 4: Add metadata to final_response
+            final_response["latency_ms"] = int((time.time() - start_time) * 1000)
+            final_response["turn_count"] = self.turn_count
+            final_response["session_id"] = self.session_id
+            
+            return final_response
         
         # Step 3: Generate model response (input passed moderation)
-        model_response = self._generate_response(
-            user_input,
-            include_context
-        )
+        if user_input.strip() == "":
+            # Empty input - return empty response without model call
+            user_input = "DISCLAIMER_INIT"
+            model_response = {
+                "response": "",
+                "model": "none",
+                "deterministic": True,
+            }
+        else:   
+            model_response = self._generate_response(
+                user_input,
+                include_context
+            )
         
         # Step 4: Moderate model output
         output_moderation = self._moderate_output(
@@ -146,7 +177,7 @@ class ChatEngine:
             final_response["response"] = f"{disclaimer}\n\n---\n\n{final_response['response']}"
         
         # Step 6: Update conversation history
-        self._update_history(user_input, final_response["response"])
+        self._update_history(user_input, final_response["response"], "allow")
         
         # Step 7: Add metadata
         final_response["latency_ms"] = int((time.time() - start_time) * 1000)
@@ -179,11 +210,6 @@ class ChatEngine:
     ) -> Dict:
         """
         Generate model response with appropriate prompting.
-        
-        - Builds prompt with system instructions
-        - Includes relevant context
-        - Calls model provider
-        - Handles errors gracefully
         """
         try:
             context = None
@@ -201,7 +227,6 @@ class ChatEngine:
             
         except Exception as e:
             logger.error(f"Model generation failed: {e}")
-            # Return appropriate error response
             return {
                 "response": "I apologize, but I'm having trouble processing your message. Please try again.",
                 "error": str(e),
@@ -275,7 +300,7 @@ class ChatEngine:
             "deterministic": model_response.get("deterministic", False),
         }
     
-    def _update_history(self, user_input: str, assistant_response: str):
+    def _update_history(self, user_input: str, assistant_response: str, action: str = "allow"):
         """
         Update conversation history.
         
@@ -291,37 +316,30 @@ class ChatEngine:
         self.conversation_history.append({
             "role": "user",
             "content": user_input,
+            "type": "allow",
         })
         
         # Add assistant response
         self.conversation_history.append({
             "role": "assistant",
             "content": assistant_response,
+            "type": action,
         })
         
         # Increment turn counter
-        self.turn_count += 1
+        self.turn_count += 2
         
-        # TODO: Check for conversation length limits
         # When MAX_CONVERSATION_TURNS is reached, add a system message to history
-        if self.turn_count >= MAX_CONVERSATION_TURNS:
-            # TODO: Complete the conversation limit handling
-            # 
-            # IMPLEMENTATION STEPS:
-            # 1. Add a end-of-conversation message to conversation history:
-            #    self.conversation_history.append({
-            #        "role": "",
-            #        "content": ""
-            #    })
-            #
-            # Note: The warning message for approaching limit is already handled in _prepare_final_response()
-            
-            pass  # DELETE this line and implement the limit handling above
+        if self.turn_count >= MAX_CONVERSATION_TURNS:    
+            self.conversation_history.append({
+                "role": "system",
+                "content": "This conversation has reached the maximum number of turns. Please start a new conversation if you wish to continue.",
+                "type": "allow"
+            })
 
-        # Optional: Trim history if it exceeds window size (already implemented)
-        max_history_size = CONTEXT_WINDOW_SIZE * 2  # Each turn has 2 messages
+        # Trim history if it exceeds window size
+        max_history_size = CONTEXT_WINDOW_SIZE * 2
         if len(self.conversation_history) > max_history_size:
-            # Keep the most recent messages
             self.conversation_history = self.conversation_history[-max_history_size:]
     
     def reset(self):
@@ -332,6 +350,9 @@ class ChatEngine:
         self.session_id = f"session_{int(time.time())}"
         logger.info(f"Chat engine reset. New session: {self.session_id}")
 
+    def get_conversation_history(self) -> List[Dict]:
+        """Return current conversation history."""
+        return self.conversation_history
 
 # Singleton instance
 _engine_instance = None
