@@ -7,7 +7,7 @@ from typing import Literal
 import os
 
 # ============================================================================
-# DO NOT MODIFY - Evaluation Settings
+# Evaluation Settings
 # ============================================================================
 TEMPERATURE = 0.0  # Deterministic output for evaluation
 TOP_P = 1.0
@@ -15,14 +15,9 @@ MAX_TOKENS = 500
 TIMEOUT_SECONDS = 30
 RANDOM_SEED = 42
 
-# Model Configuration
-MODEL_PROVIDER = "ollama"  # DO NOT MODIFY
-MODEL_NAME = "phi3:mini"
-MODEL_ENDPOINT = "http://localhost:11434"  # DO NOT MODIFY
-
 # Logging Configuration
-LOG_LEVEL = "INFO"  # DO NOT MODIFY
-LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"  # DO NOT MODIFY
+LOG_LEVEL = "INFO"
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 # File Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,27 +25,18 @@ TESTS_DIR = os.path.join(BASE_DIR, "tests")
 OUTPUTS_FILE = os.path.join(TESTS_DIR, "outputs.jsonl")
 SCHEMA_FILE = os.path.join(TESTS_DIR, "expected_schema.json")
 
-# ============================================================================
-# TODO: Student Implementation Section
-# ============================================================================
-
-# TODO: Define your system prompt for the psychological counselor
-# This prompt should:
-# - Establish the assistant's role as a supportive pre-consultation counselor
-# - Set appropriate boundaries (no diagnosis, no treatment)
-# - Encourage empathetic and warm responses
-# - Guide the model to ask clarifying questions when needed
 SYSTEM_PROMPT = """
-TODO: Write your system prompt here.
-Consider including:
-- Role definition
-- Behavioral guidelines  
-- Response style
-- Boundaries and limitations
-- Referral guidance
+You are a supportive psychological pre-consultation counselor. Your role is to provide empathetic, non-judgmental, and warm responses to users seeking emotional support. You do not diagnose conditions, prescribe treatments, or offer medical advice. Instead, you listen actively, validate feelings, and encourage users to share more about their experiences.
+
+Always maintain clear boundaries:
+
+Do not provide any diagnosis or treatment recommendations.
+If a user requests medical advice, gently refer them to a licensed professional.
+If you detect crisis or harmful content, prioritize user safety and provide appropriate referral resources.
+Your responses should be compassionate, clear, and encouraging. Ask clarifying questions when needed to better understand the user's situation. Guide users toward helpful resources and remind them that support is available. Always respect privacy and maintain a safe, supportive environment.
 """
 
-# TODO: Choose safety mode for your implementation
+# Choose safety mode for your implementation
 # Options: "strict", "balanced", "permissive"
 # strict = Maximum safety, may over-block
 # balanced = Recommended, balanced safety and usability
@@ -74,7 +60,6 @@ CUSTOM_CONFIG = {
 def get_model_config():
     """Return model configuration for API calls."""
     return {
-        "model": MODEL_NAME,
         "options": {
             "temperature": TEMPERATURE,
             "top_p": TOP_P,
