@@ -12,6 +12,8 @@ from .config import (
     SYSTEM_PROMPT,
     MAX_CONVERSATION_TURNS,
     CONTEXT_WINDOW_SIZE,
+    TEMPERATURE,
+    MAX_TOKENS
 )
 from .model_provider import get_provider
 from .moderation import (
@@ -34,7 +36,9 @@ class ChatEngine:
         self.turn_count = 0 # number of user->assistant turns completed
         self.session_id = f"session_{int(time.time())}"
         self.first_interaction = True
-    
+        self.model_temperature = TEMPERATURE
+        self.model_max_tokens = MAX_TOKENS
+
     def process_message(
         self,
         user_input: str,
@@ -221,6 +225,8 @@ class ChatEngine:
                 prompt=user_input,
                 system_prompt=SYSTEM_PROMPT,
                 conversation_history=context,
+                temperature=self.model_temperature,
+                num_predict=self.model_max_tokens
             )
             
             return response
@@ -304,8 +310,6 @@ class ChatEngine:
         """
         Update conversation history.
         
-        TODO: Implement conversation limit handling
-        
         This method should:
         - Add user and assistant turns to history
         - Increment turn counter
@@ -327,7 +331,7 @@ class ChatEngine:
         })
         
         # Increment turn counter
-        self.turn_count += 2
+        self.turn_count += 1
         
         # When MAX_CONVERSATION_TURNS is reached, add a system message to history
         if self.turn_count >= MAX_CONVERSATION_TURNS:    
@@ -353,6 +357,18 @@ class ChatEngine:
     def get_conversation_history(self) -> List[Dict]:
         """Return current conversation history."""
         return self.conversation_history
+    
+    def set_model_temperature(self, temperature: float):
+        """Set model temperature."""
+        assert 0 <= temperature <= 1, "Temperature must be between 0 and 1."
+        self.model_temperature = temperature
+        logger.info(f"Model temperature set to {temperature}")
+        
+    def set_model_max_tokens(self, max_tokens: int):
+        """Set model max tokens."""
+        assert max_tokens > 0, "Max tokens must be positive."
+        self.model_max_tokens = max_tokens
+        logger.info(f"Model max tokens set to {max_tokens}")
 
 # Singleton instance
 _engine_instance = None

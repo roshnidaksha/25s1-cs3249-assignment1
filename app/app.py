@@ -63,6 +63,21 @@ if "engine" not in st.session_state:
     st.session_state.engine = get_engine()
     _ = st.session_state.engine.process_message("") # Initialize disclaimer
 
+# Track previous sidebar values for temperature and max_tokens
+if "prev_temperature" not in st.session_state:
+    st.session_state.prev_temperature = temperature
+if "prev_max_tokens" not in st.session_state:
+    st.session_state.prev_max_tokens = max_tokens
+
+# Only update engine parameters if changed
+if temperature != st.session_state.prev_temperature:
+    st.session_state.engine.set_model_temperature(temperature)
+    st.session_state.prev_temperature = temperature
+
+if max_tokens != st.session_state.prev_max_tokens:
+    st.session_state.engine.set_model_max_tokens(max_tokens)
+    st.session_state.prev_max_tokens = max_tokens
+
 
 # =============== Helpers ===============
 def get_bot_response(user_message: str) -> Dict:

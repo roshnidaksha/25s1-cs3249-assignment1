@@ -44,7 +44,7 @@ Your responses should be compassionate, clear, and encouraging. Ask clarifying q
 SAFETY_MODE: Literal["strict", "balanced", "permissive"] = "balanced"
 
 MAX_CONVERSATION_TURNS = 10  # Maximum turns before suggesting break
-CONTEXT_WINDOW_SIZE = 5  # How many previous turns to include in context
+CONTEXT_WINDOW_SIZE = 10  # How many previous turns to include in context
 
 CUSTOM_CONFIG = {
     "empathy_level": "high",
@@ -54,7 +54,7 @@ CUSTOM_CONFIG = {
 }
 
 # ============================================================================
-# Computed Settings (DO NOT MODIFY)
+# Computed Settings
 # ============================================================================
 
 def get_model_config():
