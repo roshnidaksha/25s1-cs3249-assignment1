@@ -40,7 +40,6 @@ Mental health support systems play a critical role in providing accessible initi
 2. For installing Ollama and pulling model, please see **INSTALL.md**.
 
 ## Running on macOS
-
 ```bash
 # Create Conda environment (Python 3.11)
 conda create -n cs3249 python=3.11 -y
@@ -48,7 +47,18 @@ conda activate cs3249
 
 # Install Python dependencies
 pip install -r requirements.txt
+```
 
+This projet uses OpenAI API. Add your OpenAI API key to the top of `model_provider.py` file and run
+
+```bash
+# Run tests (See Assignment 1.pdf for details)
+python scripts/evaluate.py
+```
+
+If you are using Ollama, then run the Ollama service in a seperate terminal
+
+```bash
 # In a separate terminal, start and keep the Ollama service running
 ollama serve
 
@@ -65,7 +75,18 @@ conda activate cs3249
 
 # Install Python dependencies
 pip install -r requirements.txt
+```
 
+This project uses OpenAI API. Add your OpenAI API key to the top of `model_provider.py` file and run
+
+```bash
+# Run tests (See Assignment 1.pdf for details)
+python scripts\evaluate.py
+```
+
+If you are using Ollama, then run the Ollama service in a seperate Command Prompt or PowerShell window
+
+```bash
 # In a separate Command Prompt or PowerShell window, start and keep the Ollama service running
 ollama serve
 
