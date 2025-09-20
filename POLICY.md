@@ -27,7 +27,8 @@ CRISIS_KEYWORDS = [
     "hurt myself", "self-harm", "cut myself", "bleed myself", "injure myself",
     
     # Imminent danger indicators:
-    "goodbye forever", "final message", "won't see you tomorrow", "no reason to live", "nothing matters anymore", "sleep forever", "sleep to end", "bye forever",
+    "goodbye forever", "final message", "won't see you tomorrow", "no reason to live", "nothing matters anymore", "sleep forever", 
+    "sleep to end", "bye forever",
     
     # Emotional crisis expressions:
     "hopeless", "worthless", "useless", "overwhelmed", "lost hope"

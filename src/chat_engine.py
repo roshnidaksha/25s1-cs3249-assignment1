@@ -324,11 +324,12 @@ class ChatEngine:
         })
         
         # Add assistant response
-        self.conversation_history.append({
-            "role": "assistant",
-            "content": assistant_response,
-            "type": action,
-        })
+        if assistant_response.strip() != "":
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": assistant_response,
+                "type": action,
+            })
         
         # Increment turn counter
         self.turn_count += 1

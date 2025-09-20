@@ -54,7 +54,7 @@ class Moderator:
             
             # Imminent danger indicators:
             "goodbye forever", "final message", "won't see you tomorrow", "no reason to live", "nothing matters anymore", "sleep forever", 
-            "sleep to end", "bye forever"
+            "sleep to end", "bye forever",
             
             # Emotional crisis expressions:
             "hopeless", "worthless", "useless", "overwhelmed", "lost hope"
@@ -178,6 +178,7 @@ This is an AI support system designed to provide initial emotional support and g
 * If you are in immediate danger, this system is not a replacement for emergency services.
 
 When to Seek Immediate Help:
+
 If you are experiencing any of the following, please seek help right away:
 * Thoughts of suicide, self-harm, or wanting to end your life.
 * Feeling unsafe due to violence, abuse, or harassment.
