@@ -50,14 +50,15 @@ class Moderator:
             "end it all", "die",
             
             # Self-harm expressions:
-            "hurt myself", "self-harm", "cut myself", "bleed myself", "injure myself",
+            "hurt myself", "self-harm", "cut myself", "bleed myself", "injure myself", "shoot myself", 
+            "stab myself", "suffocate myself", "choke myself", "bury myself",
             
             # Imminent danger indicators:
             "goodbye forever", "final message", "won't see you tomorrow", "no reason to live", "nothing matters anymore", "sleep forever", 
-            "sleep to end", "bye forever",
+            "sleep to end", "bye forever", "disappear forever", "don't want to live", "never wake up",
             
             # Emotional crisis expressions:
-            "hopeless", "worthless", "useless", "overwhelmed", "lost hope"
+            "hopeless", "worthless", "useless", "overwhelmed", "lost hope", "lost all purpose"
         ]
 
         self.crisis_patterns = [
@@ -69,21 +70,25 @@ class Moderator:
             r"\bi (don't|do not) want to (live|be here|exist)\b",
             r"\bi am (going|planning) to (take|consume|eat) poison\b",
             r"\bi (gobbled|ate|drank) (poison|pills)\b",
+            r"\bi .* (take|took|ate|eat) (a lot of|too many|bunch of) (pills|tablets)\b",
             r"\blife is .* painful\b"
         ]
         
         self.medical_keywords = [
             # Diagnosis requests:
-            "diagnose", "what condition", "illness", "disorder", "disease", "syndrome",
+            "diagnose", "diagnosis", 
+            "what condition", "what disorder", "what illness", "what disease", "what syndrome",
+            "illness", "disorder", "disease", "syndrome",
+            "do i have", "could i have", "might i have", "am i", "could i be", "might i be",
             
             # Medication/treatment:
             "medication", "what pills", "medicine", "tablet", "prescribe",
             "pain killer", "dosage", "drug", "pill", "prescription", "treatment", 
-            "therapy", "sedative",
+            "therapy", "sedative", "medicine", "tablet", "antidepressant",
             
             # Mental health specific:
-            "am i depressed", "bipolar", "allergic", "syndrome", "phobia",
-            "symptoms", "ocd", "insomnia", "adhd"
+            "am i depressed", "bipolar", "allergic", "phobia",
+            "symptoms", "ocd", "insomnia", "adhd", "how to treat", "how to cure", "how to heal"
         ]
         
         self.medical_patterns = [
@@ -95,14 +100,17 @@ class Moderator:
             r"\b(can you|could you|please) (diagnose|tell me what's wrong|say what's wrong) .* me\b",
             r"\b(how much|what dosage|how many) (pills|tablets|mg) .* take\b",
             r"\b(should i|can i) (stop|start|continue|change) (my )?(medication|pills|treatment)\b",
-            r"\b(will|does|can) (this|that) (pill|medicine|drug) (help|work)\b"
-            r"\b(symptom[s]? of|sign[s]? of) (this|that|the)\b",
+            r"\b(will|does|can) (this|that) (pill|medicine|drug) (help|work)\b",
+            r"\b(what if|what happens if) (i|someone) (stop|start|change) (my )?(medication|pills|treatment|prescription)\b",
+            r"\b(change|switch|adjust) (my )?(medication|pills|treatment|prescription)\b",
+            r"\b(symptom[s]? of|sign[s]? of) .*\b",
         ]
         
         self.harmful_content = {
             "violence": [
                 "attack", "revenge", "kill", "bomb", "shoot", "massacre", "stab", 
-                "terrorist", "destroy", "assault", "murder", "explode", "gun"
+                "terrorist", "destroy", "assault", "murder", "explode", "gun", "torture",
+                "weapon", "slaughter"
             ],
             
             "illegal": [
@@ -146,6 +154,8 @@ You are not alone in this—there are people who care deeply about your wellbein
 Please consider reaching out to trained crisis counselors immediately:
 - National Suicide Prevention Lifeline: 988 (24/7)
 - Crisis Text Line: Text HOME to 741741
+- Samaritans of Singapore (SOS): 1767 (Hotline) or 9151 1767 (WhatsApp)
+- Singapore Association for Mental Health (SAMH) Helpline: 1800-283-7019
 
 If you feel comfortable, talk to someone you trust or a mental health professional as soon as possible. Your feelings are valid, and there are resources and people ready to help you through this difficult time. Remember, seeking help is a sign of strength, not weakness. You deserve compassion, understanding, and support. Please take care of yourself and allow others to help you—there is hope, and things can always get better.
     """,
@@ -156,7 +166,7 @@ I understand that you may be seeking medical advice or guidance, and I truly app
 I am not a medical professional, and I cannot provide medical diagnoses, prescribe medication, or recommend specific treatments. 
 
 For medical questions, please consult a licensed psychiatrist, psychologist, counselor, or your family doctor. If you are in crisis, contact a local helpline or emergency services:
-- Samaritans of Singapore Limited (SOS): 1767 or 6389 2222
+- Samaritans of Singapore (SOS): 1767 (Hotline) or 9151 1767 (WhatsApp)
 - Singapore Association for Mental Health (SAMH) Helpline: 1800-283-7019
 
 What I can offer is emotional support, a safe space to share what you are going through, and resources that may help you cope with feelings of stress, anxiety, or sadness. I can also guide you towards healthy coping strategies, mindfulness practices, or daily routines that may provide comfort. If you are struggling, please know that seeking professional help is a sign of strength, not weakness, and you don’t have to face this alone. You deserve care, support, and understanding.
@@ -165,7 +175,12 @@ What I can offer is emotional support, a safe space to share what you are going 
      "harmful": """
 I need to be very clear: I cannot and will not provide assistance with harmful, violent, or illegal requests. Engaging in these types of conversations could potentially cause harm, and keeping our interaction safe and respectful is my top priority. This boundary isn’t meant to hurt you but to protect both you and others from unsafe or destructive outcomes.
 
-While I cannot support harmful actions, what I can do is focus on healthier, positive, and constructive topics that may be helpful for you. If you’re experiencing strong feelings like anger, frustration, or hopelessness, I can provide a space to talk about those emotions safely. I can also share coping strategies for stress, guidance for building healthier habits, or encouragement as you work through personal challenges.
+While I cannot support harmful actions, what I can do is focus on healthier, positive, and constructive topics that may be helpful for you. 
+I can also share coping strategies for stress, guidance for building healthier habits, or encouragement as you work through personal challenges.
+
+If you’re experiencing strong feelings like anger, please reach out to a trusted friend, family member or contact a local helpline:
+- Samaritans of Singapore (SOS): 1767 (Hotline) or 9151 1767 (WhatsApp)
+- Singapore Association for Mental Health (SAMH) Helpline: 1800-283-7019
 
 If your request comes from a place of emotional pain, it might help to know that talking to a counselor, therapist, or trusted professional could give you the support you deserve. You don’t have to go through difficult moments alone, there are always safer and more hopeful paths forward.
     """,
