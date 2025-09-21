@@ -20,15 +20,17 @@ RESPONSE_STYLES = {
     "safe_fallback": {"color": "#fffbe0", "icon": "⚠️"},
 }
 
-st.set_page_config(page_title="Mental Health Chatbot", page_icon="🧠", layout="centered")
-st.title("Mental Health Chatbot 🧠")
+st.set_page_config(page_title="Psychological Pre-Consultation Bot", page_icon="🧠", layout="centered")
+st.title("Psychological Pre-Consultation Bot 🧠")
 
 # =============== Sidebar ===============
 with st.sidebar:
+    st.markdown("### Disclaimer")
+    st.markdown("This AI chatbot provides only general emotional support and is not a substitute for professional care. It cannot diagnose, prescribe, or offer medical advice. If you are in crisis or need urgent help, please contact emergency services.")
+    st.markdown("---")
     st.markdown("### Model Parameters")
     temperature = st.slider("Temperature", min_value=0.0, max_value=1.0, value=0.7, step=0.1) # Low temperature leads to deterministic, focused and predictable outputs
     max_tokens = st.slider("Max Tokens", min_value=10, max_value=500, value=200, step=10)
-    
 
 # Session state for conversation
 if "loading" not in st.session_state:
@@ -66,19 +68,26 @@ def get_history() -> list[dict]:
     """
     return st.session_state.engine.get_conversation_history()
 
-def show_to_user(msg: str, role: str, type: str = "allow"):
+def show_to_user(msg: Dict, role: str):
     if role == "user":
-        if msg != "DISCLAIMER_INIT":
+        if msg['content'] != "DISCLAIMER_INIT":
             st.markdown(f"<div style='background-color:#e6f0ff;color:#000000;padding:8px;border-radius:8px;"
                         f"border:2px solid #b3c6e6;margin-bottom:16px;'>"
-                        f"<b>🧑 You:</b> {msg}" "</div>", unsafe_allow_html=True)
+                        f"<b>🧑 You:</b> {msg['content']}" "</div>", unsafe_allow_html=True)
     elif role == "system":
         st.markdown(f"<div style='background-color:#f0f0f0;color:#000000;padding:8px;border-radius:8px;margin-bottom:16px;'>"
-                    f"🛑 <b>System:</b> {msg}" "</div>", unsafe_allow_html=True)
+                    f"🛑 <b>System:</b> {msg['content']}" "</div>", unsafe_allow_html=True)
     else:
-        style = RESPONSE_STYLES.get(type, RESPONSE_STYLES["allow"])
-        st.markdown(f"<div style='background-color:{style['color']};color:#000000;padding:8px;border-radius:8px;margin-bottom:16px;'>"
-                    f"{style['icon']} <b>Bot:</b> {msg}" "</div>", unsafe_allow_html=True)
+        style = RESPONSE_STYLES.get(msg["type"], RESPONSE_STYLES["allow"])
+        st.markdown(f"<div style='background-color:{style['color']};color:#000000;padding:8px;border-radius:8px;margin-bottom:4px;'>"
+                    f"{style['icon']} <b>Bot:</b> {msg['content']}" "</div>", unsafe_allow_html=True)
+        if msg['turn_count'] != 0:
+            st.markdown(
+                f"<div style='font-size:12px;color:#888;margin-top:0px;margin-bottom:32px;'>"
+                f"Safety: <b>{msg['type']}</b> &nbsp;|&nbsp; Latency: <b>{msg['latency_ms']} ms</b> &nbsp;|&nbsp; Turn: <b>{msg['turn_count']}</b>"
+                "</div>",
+                unsafe_allow_html=True
+            )
     
 # Show error if any
 if st.session_state.error:
@@ -95,15 +104,15 @@ for msg in get_history():
     style = RESPONSE_STYLES.get(msg["type"], RESPONSE_STYLES["allow"])
     if msg["role"] == "user":
         if msg["content"] != "DISCLAIMER_INIT":
-            show_to_user(msg['content'], "user")
+            show_to_user(msg, "user")
     elif msg["role"] == "system":
-        show_to_user(msg['content'], "system")
+        show_to_user(msg, "system")
     else:
-        show_to_user(msg['content'], "bot", msg["type"])
+        show_to_user(msg, "bot")
 
 # User input        
 if prompt := st.chat_input("Type your message here..."):
-    show_to_user(prompt, "user")
+    show_to_user({"content": prompt}, "user")
     st.session_state.loading = True
     try:
         with st.spinner("Bot is typing..."):

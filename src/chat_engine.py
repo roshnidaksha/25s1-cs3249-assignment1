@@ -80,7 +80,6 @@ class ChatEngine:
         disclaimer = None
         if self.first_interaction:
             self.first_interaction = False
-            # Get disclaimer to include in response
             disclaimer = self.moderator.get_disclaimer()
 
         # Step 2: Moderate user input
@@ -110,7 +109,7 @@ class ChatEngine:
                 final_response["response"] = f"{disclaimer}\n\n---\n\n{final_response['response']}"
             
             # Step 3: Update conversation history (even for blocked messages)
-            self._update_history(user_input, final_response["response"], "block")
+            self._update_history(final_response)
             
             # Step 4: Add metadata to final_response
             final_response["latency_ms"] = int((time.time() - start_time) * 1000)
@@ -138,7 +137,7 @@ class ChatEngine:
                 final_response["response"] = f"{disclaimer}\n\n---\n\n{final_response['response']}"
                 
             # Step 3: Update conversation history (even for safe fallback messages)
-            self._update_history(user_input, final_response["response"], "safe_fallback")
+            self._update_history(final_response)
             
             # Step 4: Add metadata to final_response
             final_response["latency_ms"] = int((time.time() - start_time) * 1000)
@@ -181,7 +180,7 @@ class ChatEngine:
             final_response["response"] = f"{disclaimer}\n\n---\n\n{final_response['response']}"
         
         # Step 6: Update conversation history
-        self._update_history(user_input, final_response["response"], "allow")
+        self._update_history(final_response)
         
         # Step 7: Add metadata
         final_response["latency_ms"] = int((time.time() - start_time) * 1000)
@@ -294,8 +293,8 @@ class ChatEngine:
             policy_tags = []
         
         # Check if we need to add conversation length warning
-        if self.turn_count >= MAX_CONVERSATION_TURNS - 2:
-            final_text += f"\n\n[Note: We're approaching our conversation limit ({self.turn_count + 1}/{MAX_CONVERSATION_TURNS} turns). Consider taking a break or starting a new conversation if needed.]"
+        if self.turn_count >= MAX_CONVERSATION_TURNS - 2 and user_input.strip() != "DISCLAIMER_INIT":
+            final_text += f"\n\n**Note**: We're approaching our conversation limit ({self.turn_count + 1}/{MAX_CONVERSATION_TURNS} turns). Consider taking a break or starting a new conversation if needed."
         
         return {
             "prompt": user_input,
@@ -306,7 +305,7 @@ class ChatEngine:
             "deterministic": model_response.get("deterministic", False),
         }
     
-    def _update_history(self, user_input: str, assistant_response: str, action: str = "allow"):
+    def _update_history(self, final_response: dict):
         """
         Update conversation history.
         
@@ -316,26 +315,35 @@ class ChatEngine:
         - Check and handle conversation limits
         - Maintain maximum history size
         """
+        is_user_input_added = False
+        is_assistant_response_added = False
+        
         # Add user message
-        self.conversation_history.append({
-            "role": "user",
-            "content": user_input,
-            "type": "allow",
-        })
+        if final_response['prompt'].strip() != "DISCLAIMER_INIT":
+            is_user_input_added = True
+            self.conversation_history.append({
+                "role": "user",
+                "content": final_response['prompt'],
+                "type": "allow",
+            })
         
         # Add assistant response
-        if assistant_response.strip() != "":
+        if final_response['response'].strip() != "":
+            is_assistant_response_added = True
             self.conversation_history.append({
                 "role": "assistant",
-                "content": assistant_response,
-                "type": action,
+                "content": final_response['response'],
+                "type": final_response['safety_action'],
+                "latency_ms": final_response.get("latency_ms", 0),
+                "turn_count": self.turn_count + 1 if is_user_input_added else self.turn_count,
             })
         
         # Increment turn counter
-        self.turn_count += 1
+        if is_user_input_added and is_assistant_response_added:
+            self.turn_count += 1
         
         # When MAX_CONVERSATION_TURNS is reached, add a system message to history
-        if self.turn_count >= MAX_CONVERSATION_TURNS:    
+        if self.turn_count >= MAX_CONVERSATION_TURNS and is_assistant_response_added:    
             self.conversation_history.append({
                 "role": "system",
                 "content": "This conversation has reached the maximum number of turns. Please start a new conversation if you wish to continue.",

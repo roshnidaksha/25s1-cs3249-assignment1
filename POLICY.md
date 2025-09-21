@@ -21,7 +21,7 @@ This document defines the safety boundaries and moderation policies for the psyc
 CRISIS_KEYWORDS = [
     # Direct suicide mentions:
     "suicide", "end my life", "kill myself", "want to die", "can't go on", "take my life", "jump off",
-    "end it all", 
+    "end it all", "die",
     
     # Self-harm expressions:
     "hurt myself", "self-harm", "cut myself", "bleed myself", "injure myself",

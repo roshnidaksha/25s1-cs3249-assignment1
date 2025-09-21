@@ -47,7 +47,7 @@ class Moderator:
         self.crisis_keywords = [
             # Direct suicide mentions:
             "suicide", "end my life", "kill myself", "want to die", "can't go on", "take my life", "jump off",
-            "end it all", 
+            "end it all", "die",
             
             # Self-harm expressions:
             "hurt myself", "self-harm", "cut myself", "bleed myself", "injure myself",
@@ -153,7 +153,11 @@ If you feel comfortable, talk to someone you trust or a mental health profession
     "medical": """
 I understand that you may be seeking medical advice or guidance, and I truly appreciate that you’ve chosen to reach out here. Your health and wellbeing are very important, but it’s important for me to be clear: 
 
-I am not a medical professional, and I cannot provide medical diagnoses, prescribe medication, or recommend specific treatments. Matters such as diagnosis, dosage, or medication changes are best discussed directly with a licensed psychiatrist, psychologist, or healthcare provider who can evaluate your situation in detail and give you the care you deserve.
+I am not a medical professional, and I cannot provide medical diagnoses, prescribe medication, or recommend specific treatments. 
+
+For medical questions, please consult a licensed psychiatrist, psychologist, counselor, or your family doctor. If you are in crisis, contact a local helpline or emergency services:
+- Samaritans of Singapore Limited (SOS): 1767 or 6389 2222
+- Singapore Association for Mental Health (SAMH) Helpline: 1800-283-7019
 
 What I can offer is emotional support, a safe space to share what you are going through, and resources that may help you cope with feelings of stress, anxiety, or sadness. I can also guide you towards healthy coping strategies, mindfulness practices, or daily routines that may provide comfort. If you are struggling, please know that seeking professional help is a sign of strength, not weakness, and you don’t have to face this alone. You deserve care, support, and understanding.
     """,
@@ -169,7 +173,7 @@ If your request comes from a place of emotional pain, it might help to know that
     "disclaimer": """
 Welcome to the Psychological Pre-Consultation Support System.
 
-IMPORTANT DISCLAIMER:
+**IMPORTANT DISCLAIMER:**
 This is an AI support system designed to provide initial emotional support and guidance. Please note that:
 * I am not a licensed therapist, doctor, or psychiatrist.
 * I cannot provide medical diagnoses, prescriptions, or professional treatment plans.
@@ -177,19 +181,20 @@ This is an AI support system designed to provide initial emotional support and g
 * Information shared here may be limited in accuracy compared to a trained clinician.
 * If you are in immediate danger, this system is not a replacement for emergency services.
 
-When to Seek Immediate Help:
-
+**When to Seek Immediate Help:**
 If you are experiencing any of the following, please seek help right away:
 * Thoughts of suicide, self-harm, or wanting to end your life.
 * Feeling unsafe due to violence, abuse, or harassment.
 * Severe emotional distress that feels unbearable or uncontrollable.
 
-What I Can Offer:
+**What I Can Offer:**
 * A listening space to share what’s on your mind.
 * Emotional support for stress, anxiety, and life challenges.
 * Coping strategies for daily struggles like motivation, confidence, or balance.
 * Practical guidance on wellbeing topics (mindfulness, healthy habits, resilience).
 * Encouragement to seek professional support when appropriate.
+
+---
 
 Your wellbeing is important. How can I support you today?
     """,
