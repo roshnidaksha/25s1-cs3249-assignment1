@@ -19,6 +19,8 @@ python3 --version
 brew install python@3.11
 ```
 
+Follow steps 2 to 5 only if using Ollama model. If you are using OpenAI API key, the following steps are not necessary.
+
 ### Step 2: Install Ollama (Primary Method)
 
 ```bash
@@ -66,6 +68,8 @@ ollama run phi3:mini "Hello, how are you?"
 ```powershell
 python --version
 ```
+
+Follow steps 2 and 3 only if using Ollama model. If you are using OpenAI API key, the following steps are not necessary.
 
 ### Step 2: Install Ollama
 
